@@ -54,7 +54,10 @@ def log_end(success: bool, steps: int, score: float, rewards: list):
 
 
 def _build_prompt(obs: dict) -> str:
-    pending_calls = [obs["v1_calls"][index] for index in obs["pending_indices"]]
+    pending_calls = [
+        {"call_index": index, "v1_call": obs["v1_calls"][index]}
+        for index in obs["pending_indices"]
+    ]
     previous_results = [
         {
             "index": result["call_index"],
@@ -77,7 +80,8 @@ Pending call indices: {obs["pending_indices"]}
 Previous results:
 {json.dumps(previous_results, indent=2)}
 
-Choose one pending call index and rewrite it.
+Choose exactly one pending call_index from the list above and rewrite that call.
+The call_index must be one of: {obs["pending_indices"]}
 Respond with ONLY valid JSON, no explanation, no markdown:
 {{
   "call_index": <int>,
@@ -93,6 +97,19 @@ Respond with ONLY valid JSON, no explanation, no markdown:
 
 def _clean_model_output(raw: str) -> str:
     return raw.replace("```json", "").replace("```JSON", "").replace("```", "").strip()
+
+
+def _normalize_action(action: dict, pending_indices: list[int]) -> dict:
+    normalized = dict(action)
+    call_index = normalized.get("call_index")
+
+    if call_index in pending_indices:
+        return normalized
+
+    if isinstance(call_index, int) and 0 <= call_index < len(pending_indices):
+        normalized["call_index"] = pending_indices[call_index]
+
+    return normalized
 
 
 def _request_model_action(prompt: str) -> dict:
@@ -146,6 +163,7 @@ def run_task(task_id: int) -> None:
 
         try:
             action = _request_model_action(prompt)
+            action = _normalize_action(action, obs["pending_indices"])
         except json.JSONDecodeError:
             log_step(
                 step=step,
