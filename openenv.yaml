@@ -1,0 +1,36 @@
+name: schemashift
+version: "1.0.0"
+description: "API migration RL environment — agents rewrite v1 API calls to v2"
+author: "Anish Shirodkar"
+tags:
+  - api-migration
+  - code-transformation
+  - software-engineering
+  - real-world
+tasks:
+  - id: 1
+    name: "User Service Migration"
+    difficulty: easy
+    max_steps: 10
+    description: "Migrate 3 calls — path params and field renames"
+  - id: 2
+    name: "Order Service Migration"
+    difficulty: medium
+    max_steps: 15
+    description: "Migrate 5 calls — Bearer auth and nested payload"
+  - id: 3
+    name: "Analytics Service Migration"
+    difficulty: hard
+    max_steps: 20
+    description: "Migrate 6 calls — pagination, enum renames, timestamps"
+observation_space:
+  type: object
+  description: "Migration guide, v1 calls list, per-call grading feedback, scores"
+action_space:
+  type: object
+  description: "call_index (int) and rewritten_call (APICall object)"
+reward_range: [-0.15, 1.1]
+endpoints:
+  reset: POST /reset
+  step: POST /step
+  state: GET /state
