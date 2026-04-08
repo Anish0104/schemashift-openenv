@@ -75,7 +75,7 @@ Each submitted rewrite is graded with deterministic partial credit:
 
 Method grading is exact. Endpoints receive full credit for an exact match and partial credit for version-prefix mistakes or truncated-but-related paths. Headers score by matching required headers and values, with penalties for forbidden headers. Payload grading merges expected body and params, supports recursive partial credit for nested objects, and applies penalties for forbidden body fields or query parameters.
 
-Episode reward is the change in average score across all calls, with a `+0.1` completion bonus for a perfect episode and a `-0.1` penalty if the step limit is reached before all calls are attempted.
+Episode reward is the change in average score across all calls. That keeps the cumulative reward aligned with the bounded episode score, and the final task score reported by `inference.py` comes from the environment's bounded `current_score`, so submitted task scores stay strictly inside `(0, 1)`.
 
 ## Setup — Docker
 
@@ -117,6 +117,6 @@ python inference.py
 
 Observed baseline run with `llama-3.3-70b-versatile` via the Groq OpenAI-compatible API:
 
-- Task 1 (easy): `1.0000`
-- Task 2 (medium): `1.0000`
-- Task 3 (hard): `1.0000`
+- Task 1 (easy): `0.9999`
+- Task 2 (medium): `0.9999`
+- Task 3 (hard): `0.9999`

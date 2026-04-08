@@ -17,6 +17,7 @@ ENV_URL = os.getenv("ENV_URL", "http://localhost:7860").rstrip("/")
 
 MAX_STEPS = 15
 SUCCESS_SCORE_THRESHOLD = 0.5
+SCORE_EPSILON = 0.0001
 
 TASK_NAMES = {
     1: "User Service Migration",
@@ -134,6 +135,19 @@ def _post_json(path: str, payload: dict) -> dict:
     return response.json()
 
 
+def _normalize_task_score(value: float) -> float:
+    bounded = min(max(float(value), SCORE_EPSILON), 1.0 - SCORE_EPSILON)
+    return round(bounded, 4)
+
+
+def _final_task_score(observation: dict | None, rewards: list[float]) -> float:
+    if observation is not None and "current_score" in observation:
+        return _normalize_task_score(observation["current_score"])
+
+    raw_score = sum(rewards)
+    return _normalize_task_score(raw_score)
+
+
 def run_task(task_id: int) -> None:
     task_name = TASK_NAMES[task_id]
     rewards = []
@@ -150,6 +164,7 @@ def run_task(task_id: int) -> None:
     log_start(task=task_name, env=BENCHMARK, model=MODEL_NAME)
 
     if reset_error:
+        score = _normalize_task_score(score)
         log_step(step=0, action="reset_error", reward=0.0, done=False, error=reset_error)
         log_end(success=False, steps=steps_taken, score=score, rewards=rewards)
         print(f"\nTask {task_id} final score: {score:.4f}\n", flush=True)
@@ -213,9 +228,7 @@ def run_task(task_id: int) -> None:
         if done:
             break
 
-    max_total_reward = 1.0
-    score = sum(rewards) / max_total_reward if max_total_reward > 0 else 0.0
-    score = min(max(score, 0.0), 1.0)
+    score = _final_task_score(obs, rewards)
     success = score >= SUCCESS_SCORE_THRESHOLD
 
     log_end(success=success, steps=steps_taken, score=score, rewards=rewards)
@@ -235,8 +248,9 @@ def main() -> None:
                 done=False,
                 error=f"Unexpected task failure: {exc}",
             )
-            log_end(success=False, steps=0, score=0.0, rewards=[])
-            print(f"\nTask {task_id} final score: 0.0000\n", flush=True)
+            score = _normalize_task_score(0.0)
+            log_end(success=False, steps=0, score=score, rewards=[])
+            print(f"\nTask {task_id} final score: {score:.4f}\n", flush=True)
 
 
 if __name__ == "__main__":

@@ -29,7 +29,7 @@ observation_space:
 action_space:
   type: object
   description: "call_index (int) and rewritten_call (APICall object)"
-reward_range: [-0.15, 1.1]
+reward_range: [-0.05, 0.9999]
 endpoints:
   reset: POST /reset
   step: POST /step

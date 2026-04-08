@@ -46,7 +46,7 @@ class CallResult(BaseModel):
     call_index: int
     v1_call: APICall
     submitted_call: Optional[APICall] = None
-    score: float = 0.0
+    score: float = 0.0001
     feedback: str = ""
     completed: bool = False
 

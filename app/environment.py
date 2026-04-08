@@ -19,18 +19,18 @@ class SchemaShiftEnv:
         self.call_results: List[CallResult] = []
         self.step_count = 0
         self.done = False
-        self._prev_score = 0.0
+        self._reward_score = 0.0
 
     def reset(self, task_id: int = 1) -> Observation:
         self.task_data = TASK_REGISTRY[task_id]
         self.task_id = task_id
         self.step_count = 0
         self.done = False
-        self._prev_score = 0.0
         self.call_results = [
             CallResult(call_index=index, v1_call=call)
             for index, call in enumerate(self.task_data["v1_calls"])
         ]
+        self._reward_score = 0.0
         return self._build_observation()
 
     def step(self, action: Action) -> StepResponse:
@@ -83,19 +83,11 @@ class SchemaShiftEnv:
         self.step_count += 1
 
         new_score = grade_episode(self.call_results)
-        step_reward = new_score - self._prev_score
-        self._prev_score = new_score
+        step_reward = round(new_score - self._reward_score, 4)
+        self._reward_score = round(self._reward_score + step_reward, 4)
 
         all_done = all(call_result.completed for call_result in self.call_results)
         step_limit_hit = self.step_count >= self.task_data["max_steps"]
-
-        bonus = 0.0
-        if all_done and new_score >= 1.0:
-            bonus = 0.1
-        if step_limit_hit and not all_done:
-            bonus = -0.1
-
-        final_reward = round(step_reward + bonus, 4)
 
         if all_done or step_limit_hit:
             self.done = True
@@ -107,7 +99,7 @@ class SchemaShiftEnv:
         return StepResponse(
             observation=self._build_observation(),
             reward=Reward(
-                value=final_reward,
+                value=step_reward,
                 breakdown=reward_breakdown,
                 message=result["feedback"],
             ),

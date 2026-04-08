@@ -5,8 +5,16 @@ from typing import Any, Dict, List
 from app.models import APICall, CallResult
 
 
+SCORE_EPSILON = 0.0001
+
+
 def _round_score(value: float) -> float:
     return round(float(value), 4)
+
+
+def _normalize_score(value: float) -> float:
+    bounded = min(max(float(value), SCORE_EPSILON), 1.0 - SCORE_EPSILON)
+    return _round_score(bounded)
 
 
 def _extract_version_prefix(path: str) -> str:
@@ -202,11 +210,11 @@ def grade_call(submitted: APICall, expected: APICall, config: dict) -> dict:
         feedback_parts.append("Payload correct.")
 
     return {
-        "method": _round_score(method_score),
-        "endpoint": _round_score(endpoint_score),
-        "headers": _round_score(headers_score),
-        "payload": _round_score(payload_score),
-        "total": _round_score(total),
+        "method": _normalize_score(method_score),
+        "endpoint": _normalize_score(endpoint_score),
+        "headers": _normalize_score(headers_score),
+        "payload": _normalize_score(payload_score),
+        "total": _normalize_score(total),
         "feedback": " ".join(feedback_parts),
     }
 
@@ -214,5 +222,5 @@ def grade_call(submitted: APICall, expected: APICall, config: dict) -> dict:
 def grade_episode(call_results: List[CallResult]) -> float:
     completed = [result for result in call_results if result.completed]
     if not completed:
-        return 0.0
-    return _round_score(sum(result.score for result in completed) / len(call_results))
+        return _normalize_score(0.0)
+    return _normalize_score(sum(result.score for result in completed) / len(call_results))
