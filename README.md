@@ -115,6 +115,8 @@ python inference.py
 
 ## Baseline Scores
 
-- Task 1 (easy): `~0.85`
-- Task 2 (medium): `~0.65`
-- Task 3 (hard): `~0.40`
+Observed baseline run with `llama-3.3-70b-versatile` via the Groq OpenAI-compatible API:
+
+- Task 1 (easy): `1.0000`
+- Task 2 (medium): `1.0000`
+- Task 3 (hard): `1.0000`
