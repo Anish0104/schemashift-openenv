@@ -7,7 +7,7 @@ from app.environment import SchemaShiftEnv
 from app.models import Action, Observation, ResetRequest, StateResponse, StepResponse
 
 
-app = FastAPI(title="SchemaShift", version="1.0.0")
+app = FastAPI(title="SchemaShift", version="1.0.1")
 
 app.add_middleware(
     CORSMiddleware,
@@ -24,7 +24,7 @@ env.reset(task_id=1)
 def root():
     return {
         "name": "SchemaShift",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "description": "API migration RL environment",
         "tasks": [1, 2, 3],
     }

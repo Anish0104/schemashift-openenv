@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "schemashift"
-version = "1.0.0"
+version = "1.0.1"
 description = "OpenEnv-compliant API migration reinforcement learning environment"
 readme = "README.md"
 requires-python = ">=3.11"
