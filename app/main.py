@@ -1,7 +1,9 @@
+import argparse
 from typing import Optional
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+import uvicorn
 
 from app.environment import SchemaShiftEnv
 from app.models import Action, Observation, ResetRequest, StateResponse, StepResponse
@@ -52,3 +54,18 @@ def step(action: Action):
 @app.get("/state", response_model=StateResponse)
 def state():
     return env.state()
+
+
+def run_server() -> None:
+    parser = argparse.ArgumentParser(description="Run the SchemaShift environment server.")
+    parser.add_argument("--host", default="0.0.0.0")
+    parser.add_argument("--port", type=int, default=7860)
+    parser.add_argument("--reload", action="store_true")
+    args = parser.parse_args()
+
+    uvicorn.run(
+        "app.main:app",
+        host=args.host,
+        port=args.port,
+        reload=args.reload,
+    )
