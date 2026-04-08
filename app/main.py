@@ -1,3 +1,5 @@
+from typing import Optional
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -34,9 +36,10 @@ def health():
 
 
 @app.post("/reset", response_model=Observation)
-def reset(request: ResetRequest):
+def reset(request: Optional[ResetRequest] = None):
     try:
-        return env.reset(task_id=request.task_id)
+        payload = request or ResetRequest()
+        return env.reset(task_id=payload.task_id)
     except KeyError as exc:
         raise HTTPException(status_code=400, detail="Invalid task_id") from exc
 
